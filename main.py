@@ -463,33 +463,36 @@ async def other_hanlder(message, state: FSMContext):
     if message.text == 'Мои ответы на заявки🤩':
         ankets = await db.get_anket_where_not_ckeck(message.from_user.id)
         print(ankets)
-        anket = await db.get_anket(ankets[0]['first_id'])
-        if (anket) is None:
+        if len(ankets) == 0:
             await message.reply('На сегодня для тебя нет анкет', reply_markup=main_kb)
         else:
-            await bot.send_sticker(message.chat.id, "CAACAgIAAxkBAAEZtDpmOv-IchOMSw775H63dyOAHnM0yAACTwMAArVx2gZq1OIofocaZDUE", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("👎"), KeyboardButton("👍")))
-            user = await db.get_anket(anket['user']['user_id'])
-            media = types.MediaGroup()
-            count = 0
-            
-            for i in user['images']:
-                if i['file_type'] == 'video':
-                    if count == 0:
-                        media.attach_video(i['file_id'], caption=f"{user['user']['name']}, {user['user']['age']}, {user['user']['city']}, {user['user']['college']}.\n{user['user']['description']}")
+            anket = await db.get_anket(ankets[0]['first_id'])
+            if (anket) is None:
+                await message.reply('На сегодня для тебя нет анкет', reply_markup=main_kb)
+            else:
+                await bot.send_sticker(message.chat.id, "CAACAgIAAxkBAAEZtDpmOv-IchOMSw775H63dyOAHnM0yAACTwMAArVx2gZq1OIofocaZDUE", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("👎"), KeyboardButton("👍")))
+                user = await db.get_anket(anket['user']['user_id'])
+                media = types.MediaGroup()
+                count = 0
+                
+                for i in user['images']:
+                    if i['file_type'] == 'video':
+                        if count == 0:
+                            media.attach_video(i['file_id'], caption=f"{user['user']['name']}, {user['user']['age']}, {user['user']['city']}, {user['user']['college']}.\n{user['user']['description']}")
+                        else:
+                            media.attach_video(i['file_id'])
+                        
                     else:
-                        media.attach_video(i['file_id'])
-                    
-                else:
-                    if count == 0:
-                        media.attach_photo(i['file_id'], caption=f"{user['user']['name']}, {user['user']['age']}, {user['user']['city']}, {user['user']['college']}.\n{user['user']['description']}")
-                    else:
-                        media.attach_photo(i['file_id'])
-                count+=1
-            async with state.proxy() as data:
-                data['first_id'] = ankets[0]['first_id']
-            
-            await bot.send_media_group(message.from_user.id, media=media)
-            await Form.get_answer_reaction.set()
+                        if count == 0:
+                            media.attach_photo(i['file_id'], caption=f"{user['user']['name']}, {user['user']['age']}, {user['user']['city']}, {user['user']['college']}.\n{user['user']['description']}")
+                        else:
+                            media.attach_photo(i['file_id'])
+                    count+=1
+                async with state.proxy() as data:
+                    data['first_id'] = ankets[0]['first_id']
+                
+                await bot.send_media_group(message.from_user.id, media=media)
+                await Form.get_answer_reaction.set()
             
 
 
