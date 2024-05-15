@@ -128,14 +128,17 @@ async def get_images(message, state: FSMContext):
     ##print(count)
     await message.delete()
     async with state.proxy() as data:
-        if (await db.check_count_files(message.from_user.id)) < 3:
+        if (await db.check_count_files(message.from_user.id)) < 2:
             await db.upload_file(message.from_user.id, file_id, message.content_type)
             try:
                 await bot.edit_message_text(chat_id=message.chat.id, message_id=int(data['msg']), text=f"Теперь отправь свои фото или видео которые будут видеть другие пользователи (максимум 3)\n|Загружено файлов: {await db.check_count_files(message.from_user.id)}",  reply_markup=InlineKeyboardMarkup(resize_keyboard=True).add(InlineKeyboardButton('Завершить загрузку', callback_data='cancel_upload')))
             except:
                 pass
         else:
-            await bot.delete_message(message.from_user.id, data['msg'])
+            try:
+                await bot.delete_message(message.from_user.id, data['msg'])
+            except:
+                pass
             anket = await db.get_anket(message.from_user.id)
             media = types.MediaGroup()
 
@@ -164,11 +167,11 @@ async def cancel_upload(callback_query, state: FSMContext):
         async with state.proxy() as data:
             await bot.delete_message(callback_query.from_user.id, data['msg'])
             anket = await db.get_anket(callback_query.from_user.id)
-            #print(anket)
             media = types.MediaGroup()
             count = 0
             await bot.send_message(callback_query.from_user.id, 'Супер! Твоя анкета готова, сейчас она выглядит так:', reply_markup=(await render_edit_kb(callback_query.from_user.id)))
             for i in anket['images']:
+                print(i)
                 if i['file_type'] == 'video':
                     if count == 0:
                         media.attach_video(i['file_id'], caption=f"{anket['user']['name']}, {anket['user']['age']}, {anket['user']['city']}, {anket['user']['college']}.\n{anket['user']['description']}")

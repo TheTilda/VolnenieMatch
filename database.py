@@ -195,7 +195,10 @@ async def get_random_anket(user_id):
         for i in (await cursor.fetchall()):
             list_users.append(i['user_id'])
         
-        list_users.remove(str(user_id))
+        try:
+            list_users.remove(str(user_id))
+        except:
+            pass
         result = list(set(list_users) - set(list_direct))
         print("Список пользователей ",list_users)
         print("Список пользователей которых мы просмотрели ",list_direct)
